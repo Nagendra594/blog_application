@@ -1,8 +1,11 @@
 import LoginForm from "../../components/Login/Login";
 import classes from "./Loginpage.module.css"
+import { Navigate } from "react-router-dom";
 const LoginPage = () => {
-  return (
-    <main style={{ backgroundColor: "#f2f4f7" }}>
+  const Compo=()=>{
+    const isAuth = localStorage.getItem("isLogged");
+    if(!isAuth){
+      return  <main style={{ backgroundColor: "#f2f4f7" }}>
       <div className={classes.container}>
         <div className={classes.content}>
           <div className={classes.left}>
@@ -24,6 +27,11 @@ const LoginPage = () => {
       </div>
 
     </main>
+    }
+    return <Navigate to={"/"}/>
+  }
+  return (
+    <Compo/>
   );
 };
 export default LoginPage;

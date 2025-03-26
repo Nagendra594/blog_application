@@ -3,8 +3,7 @@ import { Response, NextFunction } from "express";
 import { ModReq } from "../models/customReqModel";
 import { customError } from "../models/errorModel";
 import { verifyToken } from "./helper";
-import dotenv from "dotenv";
-dotenv.config();
+
 
 export const isAuth = (req: ModReq, res: Response, next: NextFunction): void => {
 
@@ -18,7 +17,7 @@ export const isAuth = (req: ModReq, res: Response, next: NextFunction): void => 
     next(error);
     return;
   }
-  let decodedToken = verifyToken(token);
+  let decodedToken= verifyToken(token);
   if (!decodedToken) {
     const error: customError = {
       message: "invalid token",
