@@ -1,0 +1,62 @@
+
+.form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.form form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+.input {
+  padding: 16px;
+  border-radius: 16px;
+  width: 50%;
+  border: 1px solid grey;
+  font-size: 1rem;
+}
+.input:focus {
+  outline: none;
+  border: 1px solid blue;
+  outline: none;
+}
+.danger {
+  color: red;
+}
+.danger:focus {
+  border-color: red;
+}
+.logBtn {
+  background-color: blue;
+  width: 50%;
+  padding: 16px;
+  font-size: 1.2rem;
+  color: white;
+  border-radius: 16px;
+  border: none;
+}
+.logBtn:disabled {
+  cursor: not-allowed;
+  background-color: lightgray;
+}
+.fgt {
+  text-decoration: none;
+  color: blue;
+}
+.createBtn {
+  background-color: #4caf50;
+  color: white;
+  padding: 16px;
+  border: none;
+  border-radius: 16px;
+  text-decoration: none;
+  font-size: 1.2rem;
+  margin: 1rem;
+}
