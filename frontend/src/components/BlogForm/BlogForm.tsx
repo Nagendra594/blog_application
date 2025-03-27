@@ -50,6 +50,11 @@ const BlogForm = () => {
     if (isUpdate) {
       blogData.blogId = Locstate.blogId;
       const response: APIResponseModel<null> = await updateBlog(blogData);
+      if(response.status===401){
+        localStorage.clear();
+        navigate("/login");
+        return;
+      }
       if (response.status !== 200) {
         setLoading(false);
         setError("Failed to update blog");
@@ -57,6 +62,11 @@ const BlogForm = () => {
       }
     } else {
       const response: APIResponseModel<null> = await insertBlog(blogData);
+      if(response.status===401){
+        localStorage.clear();
+        navigate("/login");
+        return;
+      }
       if (response.status !== 201) {
         setLoading(false);
         setError("Failed to add blog");

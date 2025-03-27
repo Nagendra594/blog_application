@@ -1,7 +1,7 @@
 import Card from "../UI/Card/Card";
 import classes from "./BlogItem.module.css";
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link ,useNavigate} from "react-router";
 import { APIResponseModel } from "../../models/APIResponseModel";
 import { deleteBlog } from "../../services/blogServices";
 import { BlogModel } from "../../models/BlogModel";
@@ -13,6 +13,7 @@ interface BlogProps {
   fetchPosts: () => void;
 }
 const BlogItem: React.FC<BlogProps> = ({ blog, fetchPosts }) => {
+  const navigate=useNavigate();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const ctx = useContext(UserContext);
@@ -20,7 +21,13 @@ const BlogItem: React.FC<BlogProps> = ({ blog, fetchPosts }) => {
     setLoading(true);
     setError(null);
     const response: APIResponseModel<null> = await deleteBlog(id);
+
     setLoading(false);
+    if(response.status===401){
+      localStorage.clear();
+      navigate("/login");
+      return;
+    }
     if (response.status !== 200) {
       setError("Failed to delete blog");
       return;

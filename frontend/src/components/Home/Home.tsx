@@ -1,4 +1,4 @@
-import { redirect, Link, ActionFunctionArgs } from "react-router-dom";
+import { redirect, Link, useNavigate} from "react-router-dom";
 import classes from "./Home.module.css";
 import { useState, useEffect, useContext } from "react";
 import UserContext from "../../context/userContext.js";
@@ -17,12 +17,18 @@ interface BlogDataType {
 }
 const Home = () => {
   const [blogsData, setBlogsData] = useState<BlogDataType>({ blogs: [], error: null, loading: false });
+  const navigate=useNavigate();
   const ctx = useContext(UserContext);
   const fetchPosts = async () => {
     setBlogsData((prev: BlogDataType) => {
       return { ...prev, loading: true, error: null }
     })
     const response: APIResponseModel<BlogModel[]> = await getBlogs();
+    if(response.status===401){
+      localStorage.clear();
+      navigate("/login");
+      return;
+    }
 
     if (response.status !== 200) {
       setBlogsData((prev: BlogDataType) => {
@@ -41,6 +47,11 @@ const Home = () => {
     const fetchUser = async () => {
       ctx.setUser({ loading: true, error: null })
       const response: APIResponseModel<UserModel> = await getUser();
+      if(response.status===401){
+        localStorage.clear();
+        navigate("/login");
+        return;
+      }
       if (response.status !== 200) {
         ctx.setUser({ loading: false, error: "Failed to fetch user" })
         return;
