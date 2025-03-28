@@ -13,18 +13,19 @@ const routes = createBrowserRouter([
     path: "/login",
     element: <LoginPage />,
     action: LoginAction,
+    errorElement:<h1>Server Error</h1>
   },
   {
     path: "/register",
     element: <RegisterPage />,
     action: signUpAction,
+    errorElement:<h1>Server Error</h1>
   },
   {
     path: "/",
     element: <ProtectedRoute><MainNavigation /></ProtectedRoute>,
     action: logoutAction,
-
-
+    errorElement:<h1>Server error</h1>,
     children: [
       {
         index: true,

@@ -1,6 +1,6 @@
-import { redirect, Link, useNavigate} from "react-router-dom";
+import { redirect, Link, useNavigate } from "react-router-dom";
 import classes from "./Home.module.css";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import UserContext from "../../context/userContext.js";
 import BlogItem from "../BlogItem/BlogItem.js";
 import { APIResponseModel } from "../../models/APIResponseModel";
@@ -17,16 +17,22 @@ interface BlogDataType {
 }
 const Home = () => {
   const [blogsData, setBlogsData] = useState<BlogDataType>({ blogs: [], error: null, loading: false });
-  const navigate=useNavigate();
+  const navigate = useNavigate();
   const ctx = useContext(UserContext);
+
+
+  const unAuthorizeHandle = useCallback(() => {
+    localStorage.clear();
+    navigate("/login");
+  }, [navigate])
+
   const fetchPosts = async () => {
     setBlogsData((prev: BlogDataType) => {
       return { ...prev, loading: true, error: null }
     })
     const response: APIResponseModel<BlogModel[]> = await getBlogs();
-    if(response.status===401){
-      localStorage.clear();
-      navigate("/login");
+    if (response.status === 401) {
+      unAuthorizeHandle()
       return;
     }
 
@@ -40,28 +46,13 @@ const Home = () => {
       return { ...prev, loading: false, blogs: response.data! }
     })
   };
+  
+
   useEffect(() => {
     fetchPosts();
   }, []);
-  useEffect(() => {
-    const fetchUser = async () => {
-      ctx.setUser({ loading: true, error: null })
-      const response: APIResponseModel<UserModel> = await getUser();
-      if(response.status===401){
-        localStorage.clear();
-        navigate("/login");
-        return;
-      }
-      if (response.status !== 200) {
-        ctx.setUser({ loading: false, error: "Failed to fetch user" })
-        return;
-      }
-      const user: UserModel = response.data!;
-      ctx.setUser({ ...user, loading: false, error: null });
-      return;
-    };
-    fetchUser();
-  }, []);
+ 
+
   const BlogCompo = () => {
     if (blogsData.loading) {
       return <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>

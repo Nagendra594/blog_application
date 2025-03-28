@@ -17,6 +17,8 @@ const BlogItem: React.FC<BlogProps> = ({ blog, fetchPosts }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const ctx = useContext(UserContext);
+
+
   const deleteHandler = async (id: string) => {
     setLoading(true);
     setError(null);
