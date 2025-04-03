@@ -5,9 +5,7 @@ import UserContext from "../../context/userContext.js";
 import BlogItem from "../BlogItem/BlogItem.js";
 import { APIResponseModel } from "../../models/APIResponseModel";
 import { getBlogs } from "../../services/blogServices"
-import { getUser } from "../../services/userServices"
 import { BlogModel } from "../../models/BlogModel";
-import { UserModel } from "../../models/UserModel";
 import { logout } from "../../services/AuthServices";
 import Loader from "../UI/Loader/Loader";
 interface BlogDataType {
@@ -19,8 +17,6 @@ const Home = () => {
   const [blogsData, setBlogsData] = useState<BlogDataType>({ blogs: [], error: null, loading: false });
   const navigate = useNavigate();
   const ctx = useContext(UserContext);
-
-
   const unAuthorizeHandle = useCallback(() => {
     localStorage.clear();
     navigate("/login");
@@ -52,7 +48,6 @@ const Home = () => {
     fetchPosts();
   }, []);
  
-
   const BlogCompo = () => {
     if (blogsData.loading) {
       return <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -93,6 +88,10 @@ export default Home;
 
 export const logoutAction = async () => {
   const response: APIResponseModel<null> = await logout();
+
+  if(response.status===401){
+    return redirect("/login")
+  }
   if (response.status !== 200) {
     window.alert("logout failed");
     return;

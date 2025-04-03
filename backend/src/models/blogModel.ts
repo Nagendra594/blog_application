@@ -4,5 +4,6 @@ export interface BlogModel extends Partial<UserModel> {
   title: string,
   content: string,
   date: Date,
+  image:string
 }
 

@@ -4,4 +4,5 @@ export interface BlogModel extends UserModel {
     title: string;
     content: string;
     date: Date;
+    image:File | string
 }

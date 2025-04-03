@@ -12,8 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAllBlogs = exports.deleteUserBlog = exports.updateUserBlog = exports.insertBlog = void 0;
 const blogServices_1 = require("../services/blogServices");
 const express_validator_1 = require("express-validator");
+const file_1 = require("../util/file");
 const insertBlog = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { title, content } = req.body;
+    const image = "uploads/" + ((_a = req.file) === null || _a === void 0 ? void 0 : _a.filename);
     const valiRes = (0, express_validator_1.validationResult)(req);
     const ERR = valiRes.array();
     try {
@@ -29,7 +32,8 @@ const insertBlog = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         const blogData = {
             userId,
             title,
-            content
+            content,
+            image
         };
         yield (0, blogServices_1.createBlog)(blogData);
         res.status(201).json({ message: "blog created" });
@@ -45,12 +49,6 @@ const updateUserBlog = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     const { id } = req.params;
     const valiRes = (0, express_validator_1.validationResult)(req);
     const ERR = valiRes.array();
-    const userId = Number(req.userId);
-    const updatedBlog = {
-        blogId: Number(id),
-        title,
-        content
-    };
     try {
         if (ERR.length > 0) {
             const error = {
@@ -60,6 +58,7 @@ const updateUserBlog = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             };
             throw error;
         }
+        const userId = Number(req.userId);
         const blog = yield (0, blogServices_1.getBlog)(Number(id));
         if (!blog) {
             const error = {
@@ -76,6 +75,16 @@ const updateUserBlog = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                 name: "Incorrect user"
             };
             throw error;
+        }
+        let updatedBlog = {
+            blogId: Number(id),
+            title,
+            content,
+        };
+        if (req.file) {
+            const image = "uploads/" + req.file.filename;
+            updatedBlog.image = image;
+            (0, file_1.deleteFile)(blog.image);
         }
         yield (0, blogServices_1.updateBlog)(updatedBlog);
         res.status(200).json({ message: "update success" });
@@ -108,6 +117,8 @@ const deleteUserBlog = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             throw error;
         }
         yield (0, blogServices_1.deleteBlog)(Number(id));
+        const imagepath = blog.image;
+        (0, file_1.deleteFile)(imagepath);
         res.status(200).json({ message: "deleted success" });
         return;
     }

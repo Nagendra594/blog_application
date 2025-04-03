@@ -1,7 +1,7 @@
 import classes from "./Login.module.css";
-import React, { useReducer, useEffect } from "react";
+import React, { useReducer } from "react";
 import Loader from "../UI/Loader/Loader";
-import { Form, redirect, useNavigation, useActionData, ActionFunctionArgs, Navigation } from "react-router-dom";
+import { Form, redirect, useNavigation, useActionData, ActionFunctionArgs, Navigation ,useSearchParams} from "react-router-dom";
 import { APIResponseModel } from "../../models/APIResponseModel";
 import { login } from "../../services/AuthServices"
 import { AuthModel } from "../../models/AuthModel";
@@ -17,7 +17,7 @@ const emailReducerFunction = (state: EmailState, action: ActionState) => {
 const passwordReducerFunction = (state: PasswordState, action: ActionState) => {
   return {
     password: action.value,
-    isValid: action.value.trim().length > 6,
+    isValid: action.value.trim().length >=8,
     touched: true,
   };
 };
@@ -26,6 +26,7 @@ interface ActionDataType {
   status: number;
 }
 const Login = () => {
+  const [queryParams]=useSearchParams();
   const navigation: Navigation = useNavigation();
   const actionData = useActionData<ActionDataType | null>();
   const [emailState, emailDispatch] = useReducer(emailReducerFunction, {
@@ -49,10 +50,11 @@ const Login = () => {
       passwordDispatch({ value });
     }
   };
-  useEffect(() => { });
+  const message=queryParams.get("m");
   return (
 
     <section className={classes.form}>
+      {message&&<p style={{color:"green"}}>{message}</p> }
       <Form method="POST">
         {actionData && (
           <p style={{ color: "red" }}>{actionData.message}</p>

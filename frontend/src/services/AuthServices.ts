@@ -3,7 +3,7 @@ import { AuthModel } from "../models/AuthModel";
 
 
 
-const API_BASE_URL = "http://localhost:8080/api/"
+const API_BASE_URL = process.env.API_URL
 export const login = async (credentials: AuthModel): Promise<APIResponseModel<null>> => {
     const response = await fetch(`${API_BASE_URL}auth/login`, {
         method: "POST",

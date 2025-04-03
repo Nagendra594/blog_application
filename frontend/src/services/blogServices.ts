@@ -1,7 +1,8 @@
+import { title } from "process";
 import { APIResponseModel } from "../models/APIResponseModel";
 import { BlogModel } from "../models/BlogModel";
 
-const API_BASE_URL = "http://localhost:8080/api/"
+const API_BASE_URL = process.env.API_URL
 
 export const getBlogs = async (): Promise<APIResponseModel<BlogModel[]>> => {
   const response = await fetch(`${API_BASE_URL}blogs`, {
@@ -28,16 +29,14 @@ export const getBlogs = async (): Promise<APIResponseModel<BlogModel[]>> => {
 }
 
 export const insertBlog = async (blogData: Partial<BlogModel>): Promise<APIResponseModel<null>> => {
+  const formData=new FormData();
+  formData.append("title",blogData.title!);
+  formData.append("content",blogData.content!);
+  formData.append("image",blogData.image!);
   const response = await fetch(`${API_BASE_URL}blogs`, {
     method: "POST",
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      title: blogData.title,
-      content: blogData.content,
-    }),
+    body: formData
   });
   let ApiRes: APIResponseModel<null>;
   if (!response.ok) {
@@ -54,16 +53,17 @@ export const insertBlog = async (blogData: Partial<BlogModel>): Promise<APIRespo
 }
 
 export const updateBlog = async (blogData: Partial<BlogModel>): Promise<APIResponseModel<null>> => {
+  const formData=new FormData();
+  formData.append("title",blogData.title!);
+  formData.append("content",blogData.content!);
+  if(blogData.image){
+    formData.append("image",blogData.image);
+  }
   const response = await fetch(`${API_BASE_URL}blogs/${blogData.blogId}`, {
     method: "PATCH",
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      title: blogData.title,
-      content: blogData.content,
-    }),
+    
+    body:formData
   });
   let ApiRes: APIResponseModel<null>;
   if (!response.ok) {

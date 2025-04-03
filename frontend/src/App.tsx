@@ -5,7 +5,7 @@ import routes from "./routes/AppRoutes.jsx";
 const App = () => {
   return (
     <UserProvider>
-      <RouterProvider router={routes} />;
+      <RouterProvider router={routes} />  
     </UserProvider>
   );
 };

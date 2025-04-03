@@ -17,14 +17,14 @@ const emailReducerFunction = (state: EmailState, action: ActionState) => {
 const passwordReducerFunction = (state: PasswordState, action: ActionState) => {
   return {
     password: action.value,
-    isValid: action.value.trim().length > 6,
+    isValid: action.value.trim().length >=8,
     touched: true,
   };
 };
 const userNameReducerFunction = (state: UserNameState, action: ActionState) => {
   return {
     username: action.value,
-    isValid: action.value.trim().length > 6,
+    isValid: action.value.trim().length >=3,
     touched: true,
   };
 };
@@ -58,12 +58,14 @@ const Register = () => {
     const { name, value } = e.target;
     if (name === "email") {
       emailDispatch({ value: value });
+      return;
     }
     if (name === "password") {
       passwordDispatch({ value: value });
-    } else {
-      usernameDispatch({ value: value });
+      return;
     }
+      usernameDispatch({ value: value });
+    
   };
   return (
 
@@ -152,16 +154,23 @@ export const signUpAction = async ({ request }: ActionFunctionArgs) => {
     userName: userName as string
   }
   const response: APIResponseModel<null> = await register(signUpData);
-  if (response.status === 401) {
+  if (response.status === 409) {
     return {
       message: "user already exists",
-      status: 401,
-    };
-  } else if (response.status === 500) {
-    return {
-      message: "server error",
-      status: 500,
+      status: response.status,
     };
   }
-  return redirect("/login");
+  if (response.status === 500) {
+    return {
+      message: "server error",
+      status: response.status,
+    };
+  }
+  if (response.status===422){
+    return{
+      message:"invalid details",
+      status:response.status
+    }
+  }
+  return redirect("/login/?m=now you can login");
 };

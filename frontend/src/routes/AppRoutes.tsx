@@ -8,24 +8,25 @@ import BlogForm from "../components/BlogForm/BlogForm";
 import MainNavigation from "../pages/HomePage/Homepage";
 import Home from "../components/Home/Home";
 import ProtectedRoute from "./ProtectedRoute";
+import ErrorPage from "../pages/ErrorPage/ErrorPage";
 const routes = createBrowserRouter([
   {
     path: "/login",
     element: <LoginPage />,
     action: LoginAction,
-    errorElement:<h1>Server Error</h1>
+    errorElement:<ErrorPage/>
   },
   {
     path: "/register",
     element: <RegisterPage />,
     action: signUpAction,
-    errorElement:<h1>Server Error</h1>
+    errorElement:<ErrorPage/>
   },
   {
     path: "/",
     element: <ProtectedRoute><MainNavigation /></ProtectedRoute>,
     action: logoutAction,
-    errorElement:<h1>Server error</h1>,
+    errorElement:<ErrorPage/>,
     children: [
       {
         index: true,

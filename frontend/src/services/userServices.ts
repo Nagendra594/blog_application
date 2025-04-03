@@ -1,7 +1,7 @@
 import { APIResponseModel } from "../models/APIResponseModel";
 import { UserModel } from "../models/UserModel";
 
-const API_BASE_URL = "http://localhost:8080/api/"
+const API_BASE_URL = process.env.API_URL
 
 export const getUser = async (): Promise<APIResponseModel<UserModel>> => {
   const response = await fetch(`${API_BASE_URL}user`, {

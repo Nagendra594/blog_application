@@ -30,8 +30,6 @@ const LoginPage = () => {
     }
     return <Navigate to={"/"}/>
   }
-  return (
-    <Compo/>
-  );
+  return <Compo/>;
 };
 export default LoginPage;

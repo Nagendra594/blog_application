@@ -15,14 +15,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getBlogs = exports.deleteBlog = exports.updateBlog = exports.getBlog = exports.createBlog = void 0;
 const dbConfig_1 = __importDefault(require("../config/dbConfig"));
 const createBlog = (credentials) => __awaiter(void 0, void 0, void 0, function* () {
-    const sq = "INSERT INTO blogs(userId,title,content) VALUES(?,?,?)";
-    const values = [credentials.userId, credentials.title, credentials.content];
+    const sq = "INSERT INTO blogs(userId,title,content,image) VALUES(?,?,?,?)";
+    const values = [credentials.userId, credentials.title, credentials.content, credentials.image];
     yield dbConfig_1.default.execute(sq, values);
     return;
 });
 exports.createBlog = createBlog;
 const getBlog = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const sq = "SELECT b.id as id,b.title as title,b.content as content,u.id as userId,b.created_at as date FROM blogs b JOIN users u on b.userId=u.id WHERE b.id=(?)";
+    const sq = "SELECT b.userId as userId,b.image as image FROM blogs b WHERE b.id=(?)";
     const values = [id];
     const [rows] = yield dbConfig_1.default.execute(sq, values);
     if (rows.length === 0) {
@@ -30,13 +30,18 @@ const getBlog = (id) => __awaiter(void 0, void 0, void 0, function* () {
     }
     const blog = {
         userId: rows[0].userId,
+        image: rows[0].image
     };
     return blog;
 });
 exports.getBlog = getBlog;
 const updateBlog = (credentials) => __awaiter(void 0, void 0, void 0, function* () {
-    const sq = "UPDATE blogs SET title=(?),content=(?) WHERE id=(?)";
-    const values = [credentials.title, credentials.content, credentials.blogId];
+    let sq = "UPDATE blogs SET title=(?),content=(?) WHERE id=(?)";
+    let values = [credentials.title, credentials.content, credentials.blogId];
+    if (credentials.image) {
+        sq = "UPDATE blogs SET title=(?),content=(?),image=(?) WHERE id=(?)";
+        values = [credentials.title, credentials.content, credentials.image, credentials.blogId];
+    }
     yield dbConfig_1.default.execute(sq, values);
     return;
 });
@@ -48,7 +53,7 @@ const deleteBlog = (id) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.deleteBlog = deleteBlog;
 const getBlogs = () => __awaiter(void 0, void 0, void 0, function* () {
-    const sq = "SELECT b.id as id,b.title as title,b.content as content,u.username as username,u.id as userId,b.created_at as date FROM blogs b JOIN users u on b.userId=u.id";
+    const sq = "SELECT b.id as id,b.title as title,b.content as content,b.image as image,u.username as username,u.id as userId,b.created_at as date FROM blogs b JOIN users u on b.userId=u.id";
     const [rows] = yield dbConfig_1.default.execute(sq);
     const blogs = rows.map((row) => {
         return {
@@ -58,6 +63,7 @@ const getBlogs = () => __awaiter(void 0, void 0, void 0, function* () {
             content: row.content,
             date: row.date,
             userId: row.userId,
+            image: row.image
         };
     });
     return blogs;
