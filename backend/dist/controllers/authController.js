@@ -42,7 +42,7 @@ const signUp = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
         }
         const hashedPassword = yield (0, helper_1.hashPass)(password, Number(process.env.SALT));
         const userDetails = {
-            userName: userName,
+            username: userName,
             email: email,
             password: hashedPassword
         };
@@ -86,7 +86,7 @@ const logIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
             };
             throw error;
         }
-        const token = (0, helper_1.generateToken)({ id: userData.userId.toString() });
+        const token = (0, helper_1.generateToken)({ id: userData.userid.toString(), role: userData.role });
         res
             .cookie("token", token, {
             maxAge: 60 * 60 * 1000,
@@ -95,7 +95,7 @@ const logIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
             secure: false,
         })
             .status(200)
-            .json({ message: "logged in" });
+            .json({ message: "logged in", role: userData.role });
         return;
     }
     catch (err) {

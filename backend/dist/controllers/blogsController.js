@@ -28,9 +28,9 @@ const insertBlog = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             };
             throw error;
         }
-        const userId = Number(req.userId);
+        const userid = req.userId;
         const blogData = {
-            userId,
+            userid,
             title,
             content,
             image
@@ -58,8 +58,8 @@ const updateUserBlog = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             };
             throw error;
         }
-        const userId = Number(req.userId);
-        const blog = yield (0, blogServices_1.getBlog)(Number(id));
+        const userId = req.userId;
+        const blog = yield (0, blogServices_1.getBlog)(id);
         if (!blog) {
             const error = {
                 name: "Not Found",
@@ -68,26 +68,26 @@ const updateUserBlog = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             };
             throw error;
         }
-        if (blog.userId !== userId) {
+        if (blog.userid !== userId && req.role !== "admin") {
             const error = {
                 message: "Invalid user",
-                status: 422,
+                status: 403,
                 name: "Incorrect user"
             };
             throw error;
         }
         let updatedBlog = {
-            blogId: Number(id),
+            blogid: id,
             title,
             content,
         };
+        yield (0, blogServices_1.updateBlog)(updatedBlog);
+        res.status(200).json({ message: "update success" });
         if (req.file) {
             const image = "uploads/" + req.file.filename;
             updatedBlog.image = image;
             (0, file_1.deleteFile)(blog.image);
         }
-        yield (0, blogServices_1.updateBlog)(updatedBlog);
-        res.status(200).json({ message: "update success" });
         return;
     }
     catch (err) {
@@ -97,9 +97,9 @@ const updateUserBlog = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
 exports.updateUserBlog = updateUserBlog;
 const deleteUserBlog = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
-    const userId = Number(req.userId);
+    const userId = req.userId;
     try {
-        const blog = yield (0, blogServices_1.getBlog)(Number(id));
+        const blog = yield (0, blogServices_1.getBlog)(id);
         if (!blog) {
             const error = {
                 name: "Not Found",
@@ -108,18 +108,18 @@ const deleteUserBlog = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             };
             throw error;
         }
-        if (blog.userId !== userId) {
+        if (blog.userid !== userId && req.role !== "admin") {
             const error = {
                 message: "Invalid user",
-                status: 422,
+                status: 403,
                 name: "Incorrect user"
             };
             throw error;
         }
-        yield (0, blogServices_1.deleteBlog)(Number(id));
+        yield (0, blogServices_1.deleteBlog)(id);
         const imagepath = blog.image;
-        (0, file_1.deleteFile)(imagepath);
         res.status(200).json({ message: "deleted success" });
+        (0, file_1.deleteFile)(imagepath);
         return;
     }
     catch (err) {

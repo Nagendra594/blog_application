@@ -8,12 +8,12 @@ export const comparePass = async (enteredPassword: string, dbPassword: string): 
 }
 
 
-export const hashPass = async (password: string, salt: number): Promise<string> | never => {
+export const hashPass = async (password: string, salt: number = 12): Promise<string> | never => {
     const hashedPassword: string = await bcrypt.hash(password, salt);
     return hashedPassword;
 }
 
-export const generateToken = (userData: { id: string }): string => {
+export const generateToken = (userData: { id: string, role: string }): string => {
     return jwt.sign(userData, process.env.JWT_KEY!, {
         expiresIn: "1h",
     })

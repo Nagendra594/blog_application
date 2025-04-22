@@ -9,37 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getById = exports.getByEmail = void 0;
+exports.deleteUser = exports.getAllUsers = exports.getById = void 0;
 const userServices_1 = require("../services/userServices");
-const getByEmail = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email } = req.body;
-    try {
-        const userData = yield (0, userServices_1.getUserByIdOrEmail)(undefined, email);
-        if (!userData) {
-            const error = {
-                message: "User Not Found",
-                name: "Not Found",
-                status: 404,
-            };
-            throw error;
-        }
-        const returnUserData = {
-            userId: userData.userId,
-            userName: userData.userName,
-            email: email
-        };
-        res.status(200).json(returnUserData);
-        return;
-    }
-    catch (err) {
-        next(err);
-    }
-});
-exports.getByEmail = getByEmail;
 const getById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.userId;
     try {
-        const userData = yield (0, userServices_1.getUserByIdOrEmail)(Number(userId));
+        const userData = yield (0, userServices_1.getUserByIdOrEmail)(userId);
         if (!userData) {
             const error = {
                 message: "User Not Found",
@@ -49,8 +24,10 @@ const getById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
             throw error;
         }
         const returnUserData = {
-            userId: userData.userId,
-            userName: userData.userName,
+            userid: userData.userid,
+            username: userData.username,
+            email: userData.email,
+            role: userData.role
         };
         res.status(200).json(returnUserData);
         return;
@@ -60,3 +37,34 @@ const getById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.getById = getById;
+const getAllUsers = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const usersData = yield (0, userServices_1.getAllUsers)();
+        res.status(200).json(usersData);
+        return;
+    }
+    catch (err) {
+        next(err);
+    }
+});
+exports.getAllUsers = getAllUsers;
+const deleteUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const id = req.params.id;
+        const userData = yield (0, userServices_1.getUserByIdOrEmail)(id, undefined);
+        if (!userData) {
+            const error = {
+                message: "User Not Found",
+                name: "Not Found",
+                status: 404,
+            };
+            throw error;
+        }
+        yield (0, userServices_1.deleteUser)(id);
+        res.status(200).json({ message: "success" });
+    }
+    catch (err) {
+        next(err);
+    }
+});
+exports.deleteUser = deleteUser;

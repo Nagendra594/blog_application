@@ -1,7 +1,7 @@
 import { createUser, getUserByIdOrEmail } from "../services/userServices";
 import { Request, Response, NextFunction } from "express";
 import { UserModel } from "../models/userModel";
-import { customError } from "../models/errorModel";
+import { customError } from "../types/error.type";
 import { validationResult } from "express-validator";
 import { comparePass, hashPass, generateToken } from "../util/helper";
 import dotenv from "dotenv";
@@ -33,7 +33,7 @@ export const signUp = async (req: Request, res: Response, next: NextFunction): P
     }
     const hashedPassword: string = await hashPass(password, Number(process.env.SALT));
     const userDetails: Partial<UserModel> = {
-      userName: userName,
+      username: userName,
       email: email,
       password: hashedPassword
     }
@@ -71,7 +71,6 @@ export const logIn = async (req: Request, res: Response, next: NextFunction): Pr
       }
       throw error;
     }
-
     const isValidPass: boolean = await comparePass(password, userData.password);
     if (!isValidPass) {
       const error: customError = {
@@ -81,7 +80,7 @@ export const logIn = async (req: Request, res: Response, next: NextFunction): Pr
       }
       throw error;
     }
-    const token: string = generateToken({ id: userData.userId.toString() });
+    const token: string = generateToken({ id: userData.userid.toString(), role: userData.role });
     res
       .cookie("token", token, {
         maxAge: 60 * 60 * 1000,
@@ -90,7 +89,7 @@ export const logIn = async (req: Request, res: Response, next: NextFunction): Pr
         secure: false,
       })
       .status(200)
-      .json({ message: "logged in" });
+      .json({ message: "logged in", role: userData.role });
     return;
   } catch (err) {
     next(err);

@@ -1,43 +1,48 @@
-import { createBrowserRouter} from "react-router";
+import { createBrowserRouter } from "react-router";
 import LoginPage from "../pages/LoginPage/Loginpage";
 import RegisterPage from "../pages/RegisterPage/Registerpage";
-import { LoginAction } from "../components/Login/Login";
-import { logoutAction } from "../components/Home/Home";
-import { signUpAction } from "../components/Register/Register";
-import BlogForm from "../components/BlogForm/BlogForm";
-import MainNavigation from "../pages/HomePage/Homepage";
-import Home from "../components/Home/Home";
+import UserMainNavigation from "../pages/HomePage/User/Homepage";
+import AdminMainNavigation from "../pages/HomePage/Admin/HomePage";
 import ProtectedRoute from "./ProtectedRoute";
 import ErrorPage from "../pages/ErrorPage/ErrorPage";
+import UserDashboard from "../components/Home/User/Home";
+import AdminDashboard from "../components/Home/Admin/Home";
+import { Role } from "../types/Role.type";
+import { AdminContextProvider } from "../context/AdmindataCtx/adminDataContext";
 const routes = createBrowserRouter([
   {
     path: "/login",
     element: <LoginPage />,
-    action: LoginAction,
-    errorElement:<ErrorPage/>
+    errorElement: <ErrorPage />
   },
   {
     path: "/register",
     element: <RegisterPage />,
-    action: signUpAction,
-    errorElement:<ErrorPage/>
+    errorElement: <ErrorPage />
   },
+
   {
     path: "/",
-    element: <ProtectedRoute><MainNavigation /></ProtectedRoute>,
-    action: logoutAction,
-    errorElement:<ErrorPage/>,
+    element: <ProtectedRoute roles={[Role.user, Role.admin]}><UserMainNavigation /></ProtectedRoute>,
     children: [
       {
         index: true,
-        element: <Home />,
+        element: <UserDashboard />
       },
-      {
-        path: "Blog",
-        element: <BlogForm />,
-      },
-    ],
+
+    ]
   },
+  {
+    path: "/admin",
+    element: <ProtectedRoute roles={[Role.admin]}><AdminContextProvider><AdminMainNavigation /></AdminContextProvider></ProtectedRoute>,
+    children: [
+      {
+        index: true,
+        element: <AdminDashboard />
+      }
+
+    ]
+  }
 ]);
 
 export default routes;

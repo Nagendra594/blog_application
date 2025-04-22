@@ -1,4 +1,8 @@
+import { Role } from "../types/Role.type"
+
 export interface UserModel {
-    userId: string,
-    userName: string,
+    userid: string,
+    username: string,
+    email?: string
+    role: Role | null
 }

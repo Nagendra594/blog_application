@@ -1,16 +1,16 @@
 
 import { createBlog, updateBlog, deleteBlog, getBlog, getBlogs } from "../services/blogServices"
 import { Response, NextFunction } from "express";
-import { ModReq } from "../models/customReqModel"
+import { ModReq } from "../types/customReq.type"
 import { BlogModel } from "../models/blogModel";
 import { validationResult } from "express-validator";
-import { customError } from "../models/errorModel";
+import { customError } from "../types/error.type";
 import { deleteFile } from "../util/file";
 
 
 export const insertBlog = async (req: ModReq, res: Response, next: NextFunction): Promise<void> => {
   const { title, content } = req.body;
-  const image="uploads/"+req.file?.filename;
+  const image = "uploads/" + req.file?.filename;
   const valiRes = validationResult(req);
   const ERR = valiRes.array();
   try {
@@ -22,13 +22,13 @@ export const insertBlog = async (req: ModReq, res: Response, next: NextFunction)
       }
       throw error;
     }
-    const userId: number = Number(req.userId!);
+    const userid: string = req.userId!;
     const blogData: Partial<BlogModel> = {
-      userId,
+      userid,
       title,
       content,
       image
-      
+
     }
 
     await createBlog(blogData);
@@ -45,6 +45,7 @@ export const updateUserBlog = async (req: ModReq, res: Response, next: NextFunct
   const { title, content } = req.body;
   const { id } = req.params;
   const valiRes = validationResult(req);
+
   const ERR = valiRes.array();
   try {
     if (ERR.length > 0) {
@@ -55,9 +56,9 @@ export const updateUserBlog = async (req: ModReq, res: Response, next: NextFunct
       }
       throw error;
     }
-    const userId: number = Number(req.userId!);
-    
-    const blog: Partial<BlogModel> | null = await getBlog(Number(id));
+    const userId: string = req.userId!;
+
+    const blog: Partial<BlogModel> | null = await getBlog(id);
     if (!blog) {
       const error: customError = {
         name: "Not Found",
@@ -66,26 +67,26 @@ export const updateUserBlog = async (req: ModReq, res: Response, next: NextFunct
       }
       throw error;
     }
-    if (blog.userId !== userId) {
+    if (blog.userid !== userId && req.role !== "admin") {
       const error: customError = {
         message: "Invalid user",
-        status: 422,
+        status: 403,
         name: "Incorrect user"
       }
       throw error;
     }
     let updatedBlog: Partial<BlogModel> = {
-      blogId: Number(id),
+      blogid: id,
       title,
       content,
     }
-    if(req.file){
-      const image="uploads/"+req.file.filename;
-      updatedBlog.image=image;
-      deleteFile(blog.image!);
-    }
     await updateBlog(updatedBlog);
     res.status(200).json({ message: "update success" });
+    if (req.file) {
+      const image = "uploads/" + req.file.filename;
+      updatedBlog.image = image;
+      deleteFile(blog.image!);
+    }
     return;
   } catch (err) {
     next(err);
@@ -94,9 +95,9 @@ export const updateUserBlog = async (req: ModReq, res: Response, next: NextFunct
 
 export const deleteUserBlog = async (req: ModReq, res: Response, next: NextFunction): Promise<void> => {
   const { id } = req.params;
-  const userId: number = Number(req.userId!);
+  const userId: string = req.userId!;
   try {
-    const blog: Partial<BlogModel> | null = await getBlog(Number(id));
+    const blog: Partial<BlogModel> | null = await getBlog(id);
     if (!blog) {
       const error: customError = {
         name: "Not Found",
@@ -105,18 +106,18 @@ export const deleteUserBlog = async (req: ModReq, res: Response, next: NextFunct
       }
       throw error;
     }
-    if (blog.userId !== userId) {
+    if (blog.userid !== userId && req.role !== "admin") {
       const error: customError = {
         message: "Invalid user",
-        status: 422,
+        status: 403,
         name: "Incorrect user"
       }
       throw error;
     }
-    await deleteBlog(Number(id));
-    const imagepath=blog.image;
-    deleteFile(imagepath!);
+    await deleteBlog(id);
+    const imagepath = blog.image;
     res.status(200).json({ message: "deleted success" });
+    deleteFile(imagepath!);
     return;
   } catch (err) {
     next(err);

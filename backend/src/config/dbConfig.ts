@@ -1,12 +1,12 @@
-import mySql2 from "mysql2";
+import {Pool}from "pg";
 import dotenv from "dotenv";
-import { Pool } from "mysql2/typings/mysql/lib/Pool";
 dotenv.config();
-const pool: Pool = mySql2.createPool({
+const pool= new Pool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB,
+  port: Number(process.env.DB_PORT),
 });
 
-export default pool.promise();
+export default pool;

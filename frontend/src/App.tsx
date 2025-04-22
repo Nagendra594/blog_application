@@ -1,11 +1,10 @@
 import { RouterProvider } from "react-router";
-import { UserProvider } from "./context/userContext.jsx";
-
-import routes from "./routes/AppRoutes.jsx";
+import { UserProvider } from "./context/UserDataCtx/userContext";
+import routes from "./routes/AppRoutes.js";
 const App = () => {
   return (
     <UserProvider>
-      <RouterProvider router={routes} />  
+      <RouterProvider router={routes} />
     </UserProvider>
   );
 };

@@ -1,38 +1,46 @@
 import db from "../config/dbConfig";
-import { RowDataPacket } from "mysql2";
 
 import { UserModel } from "../models/userModel";
 export const createUser = async (credentials: Partial<UserModel>): Promise<void> => {
-  const sq = "INSERT INTO users (username,email,password) VALUES (?,?,?)";
+  const sq = "INSERT INTO users (username,email,password) VALUES ($1,$2,$3)";
   const values = [
-    credentials.userName,
+    credentials.username,
     credentials.email,
     credentials.password,
   ];
-  await db.execute<RowDataPacket[]>(sq, values);
+  await db.query(sq, values);
   return;
 };
 
 
-export const getUserByIdOrEmail = async (id?: number, email?: string): Promise<UserModel | null> => {
-  let sq = "SELECT id,userName,email FROM users WHERE id=?";
-  let values: [number | string];
+export const getUserByIdOrEmail = async (id?: string, email?: string): Promise<UserModel | null> => {
+  let sq = "SELECT userid,username,email,role FROM users WHERE userid=$1";
+  let values: [string];
   if (email) {
-    sq = "SELECT id,userName,email,password FROM users WHERE email=?";
+    sq = "SELECT userid,username,email,password,role FROM users WHERE email=$1";
     values = [email];
   } else {
     values = [id!];
   }
-  const [rows] = await db.execute<RowDataPacket[]>(sq, values);
+  const { rows } = await db.query(sq, values);
   if (rows.length === 0) {
     return null;
   }
-  const user: UserModel = {
-    userId: rows[0].id,
-    userName: rows[0].userName,
-    email: rows[0].email,
-    password: rows[0]?.password,
-  };
-  return user;
+
+  return rows[0];
 };
 
+export const deleteUser = async (id: string) => {
+  const sq = "DELETE FROM users WHERE userid=$1";
+  const values: [string] = [id];
+  await db.query(sq, values);
+  return;
+}
+
+export const getAllUsers = async (): Promise<Partial<UserModel>[]> => {
+  const sq = "SELECT userid,username,email FROM users WHERE role=$1";
+  const values: [string] = ["user"];
+  const { rows } = await db.query(sq, values);
+  return rows as unknown as UserModel[];
+
+}

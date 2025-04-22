@@ -22,7 +22,7 @@ const comparePass = (enteredPassword, dbPassword) => __awaiter(void 0, void 0, v
     return result;
 });
 exports.comparePass = comparePass;
-const hashPass = (password, salt) => __awaiter(void 0, void 0, void 0, function* () {
+const hashPass = (password_1, ...args_1) => __awaiter(void 0, [password_1, ...args_1], void 0, function* (password, salt = 12) {
     const hashedPassword = yield bcrypt_1.default.hash(password, salt);
     return hashedPassword;
 });

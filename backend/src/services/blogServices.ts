@@ -1,64 +1,52 @@
 
 import db from "../config/dbConfig";
-import { RowDataPacket } from "mysql2";
 
 import { BlogModel } from "../models/blogModel";
 
 
 
 export const createBlog = async (credentials: Partial<BlogModel>): Promise<void> => {
-  const sq = "INSERT INTO blogs(userId,title,content,image) VALUES(?,?,?,?)";
-  const values = [credentials.userId, credentials.title, credentials.content,credentials.image];
-  await db.execute(sq, values);
+  const sq = "INSERT INTO blogs(userid,title,content,image) VALUES($1,$2,$3,$4)";
+  const values = [credentials.userid, credentials.title, credentials.content, credentials.image];
+  await db.query(sq, values);
   return;
 };
 
-export const getBlog = async (id: number): Promise<Partial<BlogModel> | null> => {
-  const sq = "SELECT b.userId as userId,b.image as image FROM blogs b WHERE b.id=(?)";
+
+export const getBlog = async (id: string): Promise<Partial<BlogModel> | null> => {
+  const sq = "SELECT b.userid as userid,b.image as image FROM blogs b WHERE b.blogid=($1)";
   const values = [id];
-  const [rows] = await db.execute<RowDataPacket[]>(sq, values);
+  const { rows } = await db.query(sq, values);
   if (rows.length === 0) {
     return null;
   }
-  const blog: Partial<BlogModel> = {
-    userId: rows[0].userId,
-    image:rows[0].image
-  };
-  return blog;
+
+  return rows[0];
 };
+
+
 export const updateBlog = async (credentials: Partial<BlogModel>): Promise<void> => {
-  let sq = "UPDATE blogs SET title=(?),content=(?) WHERE id=(?)";
-  let values=[credentials.title, credentials.content, credentials.blogId];
-  if(credentials.image){
-    sq="UPDATE blogs SET title=(?),content=(?),image=(?) WHERE id=(?)";
-    values=[credentials.title, credentials.content, credentials.image,credentials.blogId];
+  let sq = "UPDATE blogs SET title=($1),content=($2) WHERE blogid=($3)";
+  let values = [credentials.title, credentials.content, credentials.blogid];
+  if (credentials.image) {
+    sq = "UPDATE blogs SET title=($1),content=($2),image=($3) WHERE blogid=($4)";
+    values = [credentials.title, credentials.content, credentials.image, credentials.blogid];
   }
-  await db.execute(sq, values);
+  await db.query(sq, values);
   return;
-
 };
-export const deleteBlog = async (id: number): Promise<void> => {
-  const sq = "DELETE FROM blogs WHERE id=(?)";
+
+
+export const deleteBlog = async (id: string): Promise<void> => {
+  const sq = "DELETE FROM blogs WHERE blogid=($1)";
   const values = [id];
-  await db.execute(sq, values);
-
+  await db.query(sq, values);
 };
+
 
 export const getBlogs = async (): Promise<BlogModel[]> => {
   const sq =
-    "SELECT b.id as id,b.title as title,b.content as content,b.image as image,u.username as username,u.id as userId,b.created_at as date FROM blogs b JOIN users u on b.userId=u.id";
-  const [rows] = await db.execute<RowDataPacket[]>(sq);
-
-  const blogs: BlogModel[] = rows.map((row) => {
-    return {
-      blogId: row.id,
-      userName: row.username,
-      title: row.title,
-      content: row.content,
-      date: row.date,
-      userId: row.userId,
-      image:row.image
-    };
-  });
-  return blogs;
+    "SELECT b.blogid,b.title as title,b.content as content,b.image as image,u.username as username,u.userid as userid,b.created_at as date FROM blogs b JOIN users u on b.userid=u.userid ORDER BY b.created_at DESC";
+  const { rows } = await db.query(sq);
+  return rows;
 };

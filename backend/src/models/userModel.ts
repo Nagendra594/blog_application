@@ -1,7 +1,13 @@
+import { roles } from "../types/role.type"
 export interface UserModel {
-  userId: number,
-  userName: string,
+  userid: string,
+  username: string,
   email: string,
-  password: string
+  password: string,
+  role: roles
 }
+
+
+
+
 

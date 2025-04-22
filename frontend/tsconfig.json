@@ -10,7 +10,14 @@
     "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "types": [
+      "vitest"
+    ]
   },
-  "include": ["src", "custom.d.ts"]
+  "include": [
+    "src",
+    "custom.d.ts",
+    "tests"
+  ]
 }
