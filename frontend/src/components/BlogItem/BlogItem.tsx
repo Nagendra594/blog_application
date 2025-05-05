@@ -1,15 +1,17 @@
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { deleteBlog } from "../../services/BlogServices/blogServices";
 import { BlogModel } from "../../models/BlogModel";
 import { APIResponseModel } from "../../types/APIResponseModel";
-import UserContext from "../../context/UserDataCtx/userContext";
+import { useSelector } from "react-redux";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddOrEditBlogModal from "../BlogForm/AddOrEditBlog";
 
 import { Card, CardContent, Typography, Button, CardMedia, CardActions, IconButton, CircularProgress } from "@mui/material";
 import { createPortal } from "react-dom";
+
+import { UserSliceType } from "../../store/UserSlice/UserSlice";
 
 interface BlogProps {
   blog: BlogModel;
@@ -21,7 +23,7 @@ const BlogItem: React.FC<BlogProps> = ({ blog, fetchPosts }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const ctx = useContext(UserContext);
+  const ctx = useSelector((state: { userState: UserSliceType }) => state.userState);
 
   const deleteHandler = async (id: string) => {
     setLoading(true);
@@ -30,10 +32,12 @@ const BlogItem: React.FC<BlogProps> = ({ blog, fetchPosts }) => {
     setLoading(false);
 
     if (response.status === 401 || response.status === 403) {
+      // console.log("hellooo")
       localStorage.clear();
       navigate("/login");
       return;
     }
+    console.log(response.status);
     if (response.status !== 200) {
       setError("Failed to delete blog");
       return;

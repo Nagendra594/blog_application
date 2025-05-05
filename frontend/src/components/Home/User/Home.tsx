@@ -12,21 +12,22 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid"
 import AddIcon from "@mui/icons-material/Add";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import useFetch from "../../../hooks/useFetch";
 import { BlogModel } from "../../../models/BlogModel";
 import { getBlogs } from "../../../services/BlogServices/blogServices";
-import UserContext from "../../../context/UserDataCtx/userContext";
 import AddOrEditBlogModal from "../../BlogForm/AddOrEditBlog";
 import BlogItem from "../../BlogItem/BlogItem";
 import { createPortal } from "react-dom";
+import { useSelector } from "react-redux";
+import { UserSliceType } from "../../../store/UserSlice/UserSlice";
 
 
 const UserDashboard = () => {
   const [viewFilter, setViewFilter] = useState<"my" | "all">("all");
   const [open, setOpen] = useState<boolean>(false);
   const { data: blogs, loading, error, fetchAgain } = useFetch<BlogModel[]>(getBlogs);
-  const ctx = useContext(UserContext);
+  const ctx = useSelector((state: { userState: UserSliceType, }) => state.userState)
   const filteredBlogs =
     viewFilter === "my"
       ? blogs.filter((blog) => blog.userid === ctx.userid)

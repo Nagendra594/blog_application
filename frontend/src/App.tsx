@@ -1,11 +1,13 @@
 import { RouterProvider } from "react-router";
-import { UserProvider } from "./context/UserDataCtx/userContext";
+
 import routes from "./routes/AppRoutes.js";
+import { Provider } from "react-redux";
+import store from "./store/store";
 const App = () => {
   return (
-    <UserProvider>
+    <Provider store={store}>
       <RouterProvider router={routes} />
-    </UserProvider>
+    </Provider>
   );
 };
 export default App;

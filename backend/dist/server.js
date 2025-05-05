@@ -14,11 +14,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const dbConfig_1 = __importDefault(require("./config/dbConfig"));
 const index_1 = require("./index");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const connection = yield dbConfig_1.default.connect();
         connection.release();
-        index_1.app.listen(8080);
+        index_1.app.listen(process.env.PORT);
     }
     catch (err) {
         console.log(err);

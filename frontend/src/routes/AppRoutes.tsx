@@ -5,10 +5,10 @@ import UserMainNavigation from "../pages/HomePage/User/Homepage";
 import AdminMainNavigation from "../pages/HomePage/Admin/HomePage";
 import ProtectedRoute from "./ProtectedRoute";
 import ErrorPage from "../pages/ErrorPage/ErrorPage";
+import NotFoundPage from "../pages/ErrorPage/NotFound";
 import UserDashboard from "../components/Home/User/Home";
 import AdminDashboard from "../components/Home/Admin/Home";
 import { Role } from "../types/Role.type";
-import { AdminContextProvider } from "../context/AdmindataCtx/adminDataContext";
 const routes = createBrowserRouter([
   {
     path: "/login",
@@ -34,7 +34,7 @@ const routes = createBrowserRouter([
   },
   {
     path: "/admin",
-    element: <ProtectedRoute roles={[Role.admin]}><AdminContextProvider><AdminMainNavigation /></AdminContextProvider></ProtectedRoute>,
+    element: <ProtectedRoute roles={[Role.admin]}><AdminMainNavigation /></ProtectedRoute>,
     children: [
       {
         index: true,
@@ -42,6 +42,10 @@ const routes = createBrowserRouter([
       }
 
     ]
+  },
+  {
+    path: "/*",
+    element: <NotFoundPage />
   }
 ]);
 

@@ -10,45 +10,33 @@ import {
 
 import { Outlet, useNavigate } from "react-router-dom";
 import { logout } from "../../../services/AuthServices/AuthServices";
-import UserContext from "../../../context/UserDataCtx/userContext";
-
-import { useContext, useEffect } from "react";
-import { getUser } from "../../../services//UserServices/userServices";
-import { UserModel } from "../../../models/UserModel";
+import { useSelector, useDispatch } from "react-redux";
+import { userActions, UserSliceType } from "../../../store/UserSlice/UserSlice";
+import { useEffect } from "react";
 import { APIResponseModel } from "../../../types/APIResponseModel";
-
-
+import { fetchUserThunk } from "../../../store/UserSlice/UserSlice";
+import { AppDispatch } from "../../../store/store";
 
 const UserMainNavigation = () => {
-  const ctx = useContext(UserContext);
-
+  const ctx = useSelector((state: { userState: UserSliceType }) => state.userState);
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const unAuthorizeHandle = () => {
     localStorage.clear();
     navigate("/login");
   };
 
-  const fetchUser = async () => {
-    ctx.setUser({ loading: true, error: null });
-    const response: APIResponseModel<UserModel> = await getUser();
-    if (response.status === 401 || response.status === 403) {
-      unAuthorizeHandle();
-      ctx.setUser({ loading: false, error: "Failed to fetch user" });
 
-      return;
-    }
-
-    if (response.status !== 200) {
-      ctx.setUser({ loading: false, error: "Failed to fetch user" });
-      return;
-    }
-    const user: UserModel = response.data!;
-    ctx.setUser({ ...user, loading: false, error: null });
-  };
 
   useEffect(() => {
-    fetchUser();
+    dispatch(fetchUserThunk());
   }, []);
+  useEffect(() => {
+    if (ctx.error === "UnAuthenticated") {
+      unAuthorizeHandle();
+      dispatch(userActions.reset());
+    }
+  }, [ctx])
 
   const logoutHandler = async () => {
     const response: APIResponseModel<null> = await logout();
@@ -57,7 +45,7 @@ const UserMainNavigation = () => {
       return;
     }
     localStorage.clear();
-    ctx.reset();
+    dispatch(userActions.reset());
     navigate("/login");
   };
   return (

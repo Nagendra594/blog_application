@@ -1,6 +1,7 @@
 import db from "../config/dbConfig";
 import { app } from "../index";
-
+import dotenv from "dotenv"
+dotenv.config();
 jest.mock("../config/dbConfig", () => ({
 
     connect: jest.fn(),
@@ -12,6 +13,7 @@ jest.mock("../index", () => ({
         listen: jest.fn(),
     },
 }));
+
 
 describe("Server bootstrap", () => {
     beforeEach(() => {
@@ -26,8 +28,6 @@ describe("Server bootstrap", () => {
 
         expect(db.connect).toHaveBeenCalledTimes(1);
         expect(mockConnection.release).toHaveBeenCalledTimes(1);
-        expect(app.listen).toHaveBeenCalledWith(8080);
+        expect(app.listen).toHaveBeenCalledWith(process.env.PORT,);
     });
-
-
 });

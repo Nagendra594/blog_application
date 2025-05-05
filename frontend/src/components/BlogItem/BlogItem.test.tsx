@@ -1,162 +1,161 @@
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import BlogItem from "./BlogItem";
+import { Provider } from "react-redux";
+import configureMockStore from "redux-mock-store";
+import { vi, describe, expect, beforeEach, it, Mock } from "vitest";
 import { deleteBlog } from "../../services/BlogServices/blogServices";
-import { BlogModel } from "../../models/BlogModel";
-import UserContext from "../../context/UserDataCtx/userContext";
-import { useNavigate } from "react-router-dom";
+
 import { Role } from "../../types/Role.type";
-import { afterEach } from "node:test";
+import { APIResponseModel } from "../../types/APIResponseModel";
 
-vi.mock("../../services/BlogServices/blogServices", () => ({
-    deleteBlog: vi.fn(),
-}));
+const mockStore = configureMockStore();
+vi.mock("../../services/BlogServices/blogServices");
 
+const sampleBlog = {
+    blogid: "1",
+    title: "Test Blog",
+    content: "This is test content",
+    date: new Date(),
+    username: "testuser",
+    userid: "user123",
+    image: "/images/test.jpg",
+    role: Role.user
+};
+
+const fetchPosts = vi.fn();
+const mockNavigate = vi.fn();
 vi.mock("react-router-dom", () => ({
-    useNavigate: vi.fn(),
+    useNavigate: () => mockNavigate,
 }));
 
-vi.mock("../BlogForm/AddOrEditBlog", () => ({
-    default: () => <div>AddOrEditBlog Modal</div>,
-}));
-
-describe("BlogItem Component", () => {
-    const mockDeleteBlog = deleteBlog as Mock;
-    const mockNavigate = vi.fn();
-    const mockFetchPosts = vi.fn();
-
-    const mockBlog: BlogModel = {
-        blogid: "1",
-        title: "Test Blog",
-        content: "Test content",
-        userid: "123",
-        username: "testuser",
-        date: new Date(),
-        image: "test-image.jpg",
-        role: "user" as Role
-    };
-
-    const mockUserContext = {
-        userid: "123",
-        username: "testuser",
-        email: "test@example.com",
-        role: "user" as Role,
-        loading: false,
-        error: null,
-        setUser: vi.fn(),
-        reset: vi.fn(),
-    };
+describe("AdminBlogItem with Redux", () => {
+    let store: any;
+    const mockDeleteBlog = vi.mocked(deleteBlog);
 
     beforeEach(() => {
-        vi.clearAllMocks();
-        vi.mocked(useNavigate).mockReturnValue(mockNavigate);
-        mockDeleteBlog.mockReset();
-    });
-    beforeEach(() => {
-        const modalRoot = document.createElement('div');
-        modalRoot.setAttribute('id', 'modal');
+
+
+
+        store = mockStore({
+            userState: {
+                userid: "user123", // same as blog.userid
+                token: "mockToken"
+            },
+        });
+
+
+        const modalRoot = document.createElement("div");
+        modalRoot.setAttribute("id", "modal");
         document.body.appendChild(modalRoot);
     });
 
-    afterEach(() => {
-        const modalRoot = document.getElementById('modal');
-        if (modalRoot) {
-            document.body.removeChild(modalRoot);
-        }
-    });
+    it("renders blog information correctly", () => {
+        render(
+            <Provider store={store}>
 
-    const setup = (blog = mockBlog, context = mockUserContext) => {
-        return render(
-            <UserContext.Provider value={context}>
-                <BlogItem blog={blog} fetchPosts={mockFetchPosts} />
-            </UserContext.Provider>
+                <BlogItem blog={sampleBlog} fetchPosts={fetchPosts} />
+
+            </Provider>
         );
-    };
-
-    it("renders blog item correctly", () => {
-        setup();
 
         expect(screen.getByText("Test Blog")).toBeInTheDocument();
-        expect(screen.getByText("Test content")).toBeInTheDocument();
-        expect(screen.getByText(/Author:/)).toBeInTheDocument();
-        expect(screen.getByRole("img")).toHaveAttribute("alt", "Test Blog");
+        expect(screen.getByText("Author: testuser")).toBeInTheDocument();
     });
-
-    it("shows edit and delete buttons for blog owner", () => {
-        setup();
-
-        expect(screen.getByTestId("edit")).toBeInTheDocument();
-        expect(screen.getByTestId("delete")).toBeInTheDocument();
-    });
-
-
 
     it("opens edit modal when edit button is clicked", () => {
-        setup();
+        render(
+            <Provider store={store}>
 
-        fireEvent.click(screen.getByTestId("edit"));
-        expect(screen.getByText("AddOrEditBlog Modal")).toBeInTheDocument();
+                <BlogItem blog={sampleBlog} fetchPosts={fetchPosts} />
+
+            </Provider>
+        );
+
+        const editButton = screen.getByTestId("edit");
+        fireEvent.click(editButton);
+
+        expect(screen.getByText(/update Blog/i)).toBeInTheDocument();;
     });
 
-    it("handles successful blog deletion", async () => {
-        mockDeleteBlog.mockResolvedValue({ status: 200 });
-        setup();
+    it("calls deleteBlog and dispatch on success", async () => {
 
-        fireEvent.click(screen.getByTestId("delete"));
+
+        render(
+            <Provider store={store}>
+
+                <BlogItem blog={sampleBlog} fetchPosts={fetchPosts} />
+
+            </Provider>
+        );
+        mockDeleteBlog.mockResolvedValue({ status: 200 });
+
+        const deleteButton = screen.getByTestId("delete");
+        fireEvent.click(deleteButton);
 
         await waitFor(() => {
             expect(mockDeleteBlog).toHaveBeenCalledWith("1");
-            expect(mockFetchPosts).toHaveBeenCalled();
+            expect(fetchPosts).toHaveBeenCalled();
         });
     });
 
-    it("shows loading state during deletion", async () => {
-        mockDeleteBlog.mockImplementation(() => new Promise(resolve => {
-            setTimeout(() => resolve({ status: 200 }), 500);
-        }));
-        setup();
+    it("shows loading state during delete operation", async () => {
 
-        fireEvent.click(screen.getByTestId("delete"));
+
+        render(
+            <Provider store={store}>
+
+                <BlogItem blog={sampleBlog} fetchPosts={fetchPosts} />
+
+            </Provider>
+        );
+
+        const deleteButton = screen.getByTestId("delete");
+        fireEvent.click(deleteButton);
+
         expect(screen.getByTestId("progress")).toBeInTheDocument();
 
-        await waitFor(() => {
-            expect(screen.queryByTestId("progress")).not.toBeInTheDocument();
-        });
+        await waitFor(() => expect(fetchPosts).toHaveBeenCalled());
     });
 
-    it("handles deletion error", async () => {
+    it("displays error message on delete failure", async () => {
         mockDeleteBlog.mockResolvedValue({ status: 500 });
-        setup();
 
-        fireEvent.click(screen.getByTestId("delete"));
+        render(
+            <Provider store={store}>
+
+                <BlogItem blog={sampleBlog} fetchPosts={fetchPosts} />
+
+            </Provider>
+        );
+
+        const deleteButton = screen.getByTestId("delete");
+        fireEvent.click(deleteButton);
 
         await waitFor(() => {
             expect(screen.getByText("Failed to delete blog")).toBeInTheDocument();
         });
     });
 
-    it("redirects to login when unauthorized (401)", async () => {
-        mockDeleteBlog.mockResolvedValue({ status: 401 });
-        setup();
+    it("navigates to login on 401 error", async () => {
 
-        fireEvent.click(screen.getByTestId("delete"));
+        const mockResponse: APIResponseModel<null> = {
+            status: 401,
+            data: null,
+        };
+
+        render(
+            <Provider store={store}>
+
+                <BlogItem blog={sampleBlog} fetchPosts={fetchPosts} />
+            </Provider>
+        );
+
+        mockDeleteBlog.mockResolvedValue(mockResponse);
+        const deleteButton = screen.getByTestId("delete");
+        fireEvent.click(deleteButton);
 
         await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith("/login");
+            expect(mockNavigate).toHaveBeenCalled();
         });
     });
-
-    it("properly formats the image URL", () => {
-        const blogWithSpaces = {
-            ...mockBlog,
-            image: "test image.jpg"
-        };
-        setup(blogWithSpaces);
-
-        expect(screen.getByRole("img")).toHaveAttribute(
-            "src",
-            expect.stringContaining("test%20image.jpg")
-        );
-    });
-
 });

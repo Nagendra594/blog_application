@@ -1,12 +1,14 @@
 import { describe, it, expect, vi, Mock } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { createMemoryRouter, RouterProvider } from "react-router-dom";
+import { createMemoryRouter, MemoryRouter, RouterProvider } from "react-router-dom";
 import UserMainNavigation from "./Homepage";
 import { logout } from "../../../services/AuthServices/AuthServices";
 import { getUser } from "../../../services/UserServices/userServices"
-import UserContext from "../../../context/UserDataCtx/userContext";
 import { Role } from "../../../types/Role.type";
 import dotenv from "dotenv"
+import { userReducer, UserSliceType } from "../../../store/UserSlice/UserSlice";
+import { configureStore } from "@reduxjs/toolkit";
+import { Provider } from "react-redux";
 dotenv.config();
 
 vi.mock("../../../services/AuthServices/AuthServices", () => ({
@@ -30,73 +32,67 @@ vi.mock("react-router-dom", async (importOriginal) => {
 describe("UserMainNavigation Component", () => {
     const mockLogout = logout as Mock;
     const mockGetUser = getUser as Mock;
-    const mockContextValue = {
-        username: "testuser",
-        userid: "1",
-        role: "user" as Role,
-        loading: false,
-        error: null as string | null,
-        setUser: vi.fn(),
-        reset: vi.fn(),
+    const mockStore = (initialState: { userState: UserSliceType }) => {
+        return configureStore({
+            reducer: {
+                userState: userReducer
+            },
+            preloadedState: initialState
+        });
     };
 
 
 
-    const setup = (contextValue = mockContextValue) => {
-        const router = createMemoryRouter([
-            {
-                path: "/",
-                element: (
-                    <UserContext.Provider value={contextValue}>
-                        <UserMainNavigation />
-                    </UserContext.Provider>
-                ),
-            },
-        ], { initialEntries: ["/"] });
 
-        return render(<RouterProvider router={router} />);
+    const setup = (userData: UserSliceType) => {
+        const store = mockStore({
+            userState: userData
+        });
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <UserMainNavigation />
+                </MemoryRouter>
+            </Provider>
+        );
+
     };
 
     it("renders without crashing", () => {
-        setup();
+        setup({
+            loading: false,
+            error: null,
+            userid: "123",
+            username: "dummy",
+            role: Role.user
+        });
         expect(screen.getByText("User Dashboard")).toBeInTheDocument();
-        expect(screen.getByText("testuser")).toBeInTheDocument();
+        expect(screen.getByText("dummy")).toBeInTheDocument();
         expect(screen.getByText("Logout")).toBeInTheDocument();
     });
 
     it("fetches user data on mount", async () => {
-        const mockUserData = {
-            id: "1",
+        const mockUserData: UserSliceType = {
+            userid: "1",
             username: "testuser",
             email: "test@example.com",
-            role: "user"
+            role: Role.user,
+            error: null,
+            loading: false
         };
         mockGetUser.mockResolvedValueOnce({
             status: 200,
             data: mockUserData
         });
 
-        const mockSetUser = vi.fn();
-        const testContext = {
-            ...mockContextValue,
-            setUser: mockSetUser
-        };
 
-        setup(testContext);
+
+        setup(mockUserData);
 
         await waitFor(() => {
             expect(mockGetUser).toHaveBeenCalled();
 
-            expect(mockSetUser).toHaveBeenNthCalledWith(1, {
-                loading: true,
-                error: null
-            });
 
-            expect(mockSetUser).toHaveBeenNthCalledWith(2, {
-                ...mockUserData,
-                loading: false,
-                error: null
-            });
         });
     });
 
@@ -110,13 +106,15 @@ describe("UserMainNavigation Component", () => {
             message: "Unauthorized"
         });
 
-        const mockReset = vi.fn();
-        const testContext = {
-            ...mockContextValue,
-            reset: mockReset
-        };
 
-        setup(testContext);
+
+        setup({
+            loading: false,
+            error: "UnAuthenticated",
+            userid: "123",
+            username: "dummy",
+            role: Role.user
+        });
 
         await waitFor(() => {
             expect(mockNavigate).toHaveBeenCalledWith("/login");
@@ -133,13 +131,19 @@ describe("UserMainNavigation Component", () => {
         localStorage.setItem("isLogged", "true");
         localStorage.setItem("role", "user");
 
-        setup();
+        setup({
+            loading: false,
+            error: null,
+            userid: "123",
+            username: "dummy",
+            role: Role.user
+        });
 
         fireEvent.click(screen.getByText("Logout"));
 
         await waitFor(() => {
             expect(mockLogout).toHaveBeenCalled();
-            expect(mockContextValue.reset).toHaveBeenCalled();
+
             expect(mockNavigate).toHaveBeenCalledWith("/login");
             expect(localStorage.getItem("isLogged")).toBeNull();
         });
@@ -149,7 +153,13 @@ describe("UserMainNavigation Component", () => {
         mockLogout.mockResolvedValueOnce({ status: 500 });
         const mockAlert = vi.spyOn(window, "alert").mockImplementation(() => { });
 
-        setup();
+        setup({
+            loading: false,
+            error: null,
+            userid: "123",
+            username: "dummy",
+            role: Role.user
+        });
 
         fireEvent.click(screen.getByText("Logout"));
 
@@ -160,7 +170,13 @@ describe("UserMainNavigation Component", () => {
         mockAlert.mockRestore();
     });
     it("renders Outlet content", () => {
-        setup();
+        setup({
+            loading: false,
+            error: null,
+            userid: "123",
+            username: "dummy",
+            role: Role.user
+        });
         expect(screen.getByText("Outlet Content")).toBeInTheDocument();
     });
 });

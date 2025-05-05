@@ -2,7 +2,7 @@ import {
     AppBar,
     Toolbar,
     Typography,
-    Avatar,
+
     Box,
 
     Button,
@@ -10,17 +10,16 @@ import {
 import { Outlet, useNavigate } from "react-router-dom";
 import { APIResponseModel } from "../../../types/APIResponseModel";
 import { logout } from "../../../services/AuthServices/AuthServices";
-import UserContext from "../../../context/UserDataCtx/userContext";
-import { useContext, useEffect } from "react";
-
-import { UserModel } from "../../../models/UserModel";
-import { getUser } from "../../../services/UserServices/userServices";
-import { AdminContext } from "../../../context/AdmindataCtx/adminDataContext";
-
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { userActions, UserSliceType } from "../../../store/UserSlice/UserSlice";
+import { AppDispatch } from "../../../store/store";
+import { fetchUserThunk } from "../../../store/UserSlice/UserSlice";
+import { adminActions, AdminSliceType } from "../../../store/AdminDataSlice/AdminDataSlice";
 const AdminMainNavigation = () => {
-    const ctx = useContext(UserContext);
-    const adminCtx = useContext(AdminContext);
-
+    const ctx = useSelector((state: { userState: UserSliceType }) => state.userState);
+    const adminCtx = useSelector((state: { AdminDataState: AdminSliceType }) => state.AdminDataState);
+    const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
 
 
@@ -28,31 +27,16 @@ const AdminMainNavigation = () => {
         localStorage.clear();
         navigate("/login");
     };
-
-
-
-
-    const fetchUser = async () => {
-        ctx.setUser({ loading: true, error: null });
-        const response: APIResponseModel<UserModel> = await getUser();
-        if (response.status === 401 || response.status === 403) {
-            unAuthorizeHandle();
-            ctx.reset();
-            adminCtx.reset();
-            return;
-        }
-
-        if (response.status !== 200) {
-            ctx.setUser({ loading: false, error: "Failed to fetch user" });
-            return;
-        }
-        const user: UserModel = response.data!;
-        ctx.setUser({ ...user, loading: false, error: null });
-    };
+    useEffect(() => {
+        dispatch(fetchUserThunk());
+    }, []);
 
     useEffect(() => {
-        fetchUser();
-    }, []);
+        if (ctx.error === "UnAuthenticated") {
+            unAuthorizeHandle();
+            dispatch(userActions.reset());
+        }
+    }, [ctx])
     const logoutHandler = async () => {
         const response: APIResponseModel<null> = await logout();
         if (response.status !== 200) {
@@ -60,8 +44,8 @@ const AdminMainNavigation = () => {
             return;
         }
         localStorage.clear();
-        ctx.reset();
-        adminCtx.reset();
+        dispatch(userActions.reset());
+        dispatch(adminActions.reset());
         navigate("/login");
     };
     return (
@@ -71,7 +55,6 @@ const AdminMainNavigation = () => {
                     <Typography variant="h6">Admin Dashboard</Typography>
                     <Box display="flex" alignItems="center" gap={2}>
                         <Typography>{ctx.username}</Typography>
-                        <Avatar alt="Admin" src="https://i.pravatar.cc/300" />
                         <Button
                             variant="contained"
                             color="secondary"

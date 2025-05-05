@@ -12,13 +12,18 @@ interface fetchDataType<T> {
 
 
 const useFetch = <T>(fetchService: Function): fetchDataType<T> => {
+    const [fetchedData, setFetchedData] = useState<fetchDataType<T>>({
+        data: [] as T,
+        error: null,
+        loading: false,
+        fetchAgain: fetchData
+    });
     const navigate = useNavigate();
     const unAuthorizeHandle = () => {
         localStorage.clear();
         navigate("/login");
     }
-
-    const fetchData = async (signal: any) => {
+    async function fetchData(signal: any) {
         setFetchedData((prev: fetchDataType<T>) => ({
             ...prev,
             loading: true,
@@ -46,14 +51,6 @@ const useFetch = <T>(fetchService: Function): fetchDataType<T> => {
 
         })
     }
-
-    const [fetchedData, setFetchedData] = useState<fetchDataType<T>>({
-        data: [] as T,
-        error: null,
-        loading: false,
-        fetchAgain: fetchData
-    });
-
     useEffect(() => {
         const controller = new AbortController();
         const signal = controller.signal;

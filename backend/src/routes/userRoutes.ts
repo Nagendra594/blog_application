@@ -1,18 +1,18 @@
-import express from "express"
+import { Router } from "express"
 
 import { getById, getAllUsers, deleteUser } from "../controllers/userController";
 import { isAuth } from "../middlewares/isAuth"
 import { checkRole } from "../middlewares/role";
 import { roles } from "../types/role.type";
-const router = express.Router();
+const router = Router();
 
 router.get("/", isAuth, checkRole([roles.admin, roles.user]), getById);
 router.get("/allUsers", isAuth, checkRole([roles.admin]), getAllUsers);
-router.patch("/:id", isAuth, checkRole([roles.admin]), deleteUser)
+router.delete("/:id", isAuth, checkRole([roles.admin]), deleteUser)
 export default router;
 
 /**
- * @swagger
+ * @swagger     
  * tags:
  *   name: Users
  *   description: User management Routes

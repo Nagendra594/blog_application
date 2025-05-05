@@ -81,11 +81,13 @@ const updateUserBlog = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             title,
             content,
         };
-        yield (0, blogServices_1.updateBlog)(updatedBlog);
-        res.status(200).json({ message: "update success" });
         if (req.file) {
             const image = "uploads/" + req.file.filename;
             updatedBlog.image = image;
+        }
+        yield (0, blogServices_1.updateBlog)(updatedBlog);
+        res.status(200).json({ message: "update success" });
+        if (req.file) {
             (0, file_1.deleteFile)(blog.image);
         }
         return;

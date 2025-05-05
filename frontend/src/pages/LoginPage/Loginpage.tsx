@@ -77,6 +77,7 @@ const LoginPage: React.FC = () => {
       email: emailState.email,
       password: passwordState.password
     };
+
     const response: APIResponseModel<Role> = await login(loginData);
     setSubmitting(false);
 

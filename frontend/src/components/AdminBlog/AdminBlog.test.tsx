@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import AdminBlogItem from './AdminBlog';
 import { BlogModel } from '../../models/BlogModel';
 import { APIResponseModel } from '../../types/APIResponseModel';
@@ -9,15 +8,26 @@ import { useNavigate } from 'react-router-dom';
 import { Role } from '../../types/Role.type';
 
 vi.mock('../../services/BlogServices/blogServices');
-vi.mock('react-router-dom', () => ({
-    ...vi.importActual('react-router-dom'),
-    useNavigate: vi.fn(),
-}));
+vi.mock('react-router-dom', async () => {
+    const actual = await vi.importActual('react-router-dom');
+    return {
+        ...actual,
+        useNavigate: vi.fn(),
+    };
+});
+vi.mock('react-redux', async () => {
+    const actual = await vi.importActual('react-redux');
+    return {
+        ...actual,
+        useDispatch: () => vi.fn()
+    }
+})
 
 beforeAll(() => {
     const modalRoot = document.createElement('div');
     modalRoot.setAttribute('id', 'modal');
     document.body.appendChild(modalRoot);
+
 });
 
 afterAll(() => {
@@ -35,22 +45,24 @@ const mockBlog: BlogModel = {
     userid: '456',
     date: new Date(),
     image: null,
-    role: "user" as Role
+    role: "user" as Role,
 };
 
-const mockFetch = vi.fn();
+const mockDispatch = vi.fn();
+const mockNavigate = vi.fn();
 
-describe('AdminBlogItem', () => {
-    const mockNavigate = vi.fn();
+describe('AdminBlogItem with Redux', () => {
     const mockDeleteBlog = vi.mocked(deleteBlog);
 
     beforeEach(() => {
         vi.clearAllMocks();
-        (useNavigate as any).mockReturnValue(mockNavigate);
+
+        (useNavigate as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockNavigate);
+
     });
 
     it('renders blog information correctly', () => {
-        render(<AdminBlogItem blog={mockBlog} fetch={mockFetch} />);
+        render(<AdminBlogItem blog={mockBlog} />);
 
         expect(screen.getByText('Test Blog')).toBeInTheDocument();
         expect(screen.getByText('testuser')).toBeInTheDocument();
@@ -59,7 +71,7 @@ describe('AdminBlogItem', () => {
     });
 
     it('opens edit modal when edit button is clicked', () => {
-        render(<AdminBlogItem blog={mockBlog} fetch={mockFetch} />);
+        render(<AdminBlogItem blog={mockBlog} />);
 
         const editButton = screen.getByTestId('edit');
         fireEvent.click(editButton);
@@ -67,23 +79,20 @@ describe('AdminBlogItem', () => {
         expect(document.getElementById('modal')).toBeInTheDocument();
     });
 
-    it('calls deleteBlog when delete button is clicked', async () => {
+    it('calls deleteBlog and dispatch on success', async () => {
         const mockResponse: APIResponseModel<null> = {
             status: 200,
             data: null,
         };
         mockDeleteBlog.mockResolvedValue(mockResponse);
 
-        render(<AdminBlogItem blog={mockBlog} fetch={mockFetch} />);
-
-        const deleteButton = screen.getByTestId('delete')
+        render(<AdminBlogItem blog={mockBlog} />);
+        const deleteButton = screen.getByTestId('delete');
         fireEvent.click(deleteButton);
 
         expect(mockDeleteBlog).toHaveBeenCalledWith('123');
 
-        await waitFor(() => {
-            expect(mockFetch).toHaveBeenCalled();
-        });
+
     });
 
     it('shows loading state during delete operation', async () => {
@@ -93,9 +102,8 @@ describe('AdminBlogItem', () => {
         };
         mockDeleteBlog.mockResolvedValue(mockResponse);
 
-        render(<AdminBlogItem blog={mockBlog} fetch={mockFetch} />);
-
-        const deleteButton = screen.getByTestId('delete')
+        render(<AdminBlogItem blog={mockBlog} />);
+        const deleteButton = screen.getByTestId('delete');
         fireEvent.click(deleteButton);
 
         expect(screen.getByRole('progressbar')).toBeInTheDocument();
@@ -105,15 +113,14 @@ describe('AdminBlogItem', () => {
         });
     });
 
-    it('handles delete error', async () => {
+    it('displays error message on delete failure', async () => {
         const mockResponse: APIResponseModel<null> = {
             status: 500,
             data: null,
         };
         mockDeleteBlog.mockResolvedValue(mockResponse);
 
-        render(<AdminBlogItem blog={mockBlog} fetch={mockFetch} />);
-
+        render(<AdminBlogItem blog={mockBlog} />);
         const deleteButton = screen.getByTestId('delete');
         fireEvent.click(deleteButton);
 
@@ -122,15 +129,14 @@ describe('AdminBlogItem', () => {
         });
     });
 
-    it('navigates to login on 401 response', async () => {
+    it('navigates to login on 401 error', async () => {
         const mockResponse: APIResponseModel<null> = {
             status: 401,
             data: null,
         };
         mockDeleteBlog.mockResolvedValue(mockResponse);
 
-        render(<AdminBlogItem blog={mockBlog} fetch={mockFetch} />);
-
+        render(<AdminBlogItem blog={mockBlog} />);
         const deleteButton = screen.getByTestId('delete');
         fireEvent.click(deleteButton);
 

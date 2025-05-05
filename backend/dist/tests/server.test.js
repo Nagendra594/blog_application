@@ -47,6 +47,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const dbConfig_1 = __importDefault(require("../config/dbConfig"));
 const index_1 = require("../index");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 jest.mock("../config/dbConfig", () => ({
     connect: jest.fn(),
 }));
@@ -65,6 +67,6 @@ describe("Server bootstrap", () => {
         yield Promise.resolve().then(() => __importStar(require("../server")));
         expect(dbConfig_1.default.connect).toHaveBeenCalledTimes(1);
         expect(mockConnection.release).toHaveBeenCalledTimes(1);
-        expect(index_1.app.listen).toHaveBeenCalledWith(8080);
+        expect(index_1.app.listen).toHaveBeenCalledWith(process.env.PORT);
     }));
 });

@@ -1,17 +1,14 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
+const express_1 = require("express");
 const userController_1 = require("../controllers/userController");
 const isAuth_1 = require("../middlewares/isAuth");
 const role_1 = require("../middlewares/role");
 const role_type_1 = require("../types/role.type");
-const router = express_1.default.Router();
+const router = (0, express_1.Router)();
 router.get("/", isAuth_1.isAuth, (0, role_1.checkRole)([role_type_1.roles.admin, role_type_1.roles.user]), userController_1.getById);
 router.get("/allUsers", isAuth_1.isAuth, (0, role_1.checkRole)([role_type_1.roles.admin]), userController_1.getAllUsers);
-router.patch("/:id", isAuth_1.isAuth, (0, role_1.checkRole)([role_type_1.roles.admin]), userController_1.deleteUser);
+router.delete("/:id", isAuth_1.isAuth, (0, role_1.checkRole)([role_type_1.roles.admin]), userController_1.deleteUser);
 exports.default = router;
 /**
  * @swagger

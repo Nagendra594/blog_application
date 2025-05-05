@@ -1,5 +1,3 @@
-
-
 import { Router } from "express";
 import { signUp, logIn, logout } from "../controllers/authController";
 import { isAuth } from "../middlewares/isAuth";
@@ -103,8 +101,6 @@ export default router;
  *   post:
  *     summary: Log out the current user
  *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Logged out successfully

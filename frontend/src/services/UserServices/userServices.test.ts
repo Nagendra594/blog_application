@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { getUser, getAllUsers, deleteAUser } from "./userServices";
 import { UserModel } from "../../models/UserModel";
-import { APIResponseModel } from "../../types/APIResponseModel";
 import { Role } from "../../types/Role.type";
 
 const API_URL = "http://localhost:3000/";

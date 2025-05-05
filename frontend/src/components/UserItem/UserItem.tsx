@@ -4,12 +4,16 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { UserModel } from "../../models/UserModel";
 import { APIResponseModel } from "../../types/APIResponseModel";
 import { deleteAUser } from "../../services/UserServices/userServices";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../store/store";
+import { fetchAdminDataThunk } from "../../store/AdminDataSlice/AdminDataSlice";
+
 interface UserItemProps {
     user: UserModel,
-    fetchData: Function
 }
-const UserItem: React.FC<UserItemProps> = ({ user, fetchData }) => {
 
+const UserItem: React.FC<UserItemProps> = ({ user }) => {
+    const dispatch = useDispatch<AppDispatch>();
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const deleteHandler = async (id: string) => {
@@ -20,7 +24,7 @@ const UserItem: React.FC<UserItemProps> = ({ user, fetchData }) => {
             setError("Error deleting user");
         }
         setLoading(false);
-        fetchData();
+        dispatch(fetchAdminDataThunk());
         return;
     }
     return <TableRow>

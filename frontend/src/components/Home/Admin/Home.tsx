@@ -11,24 +11,21 @@ import {
     Grid,
     Divider,
 } from "@mui/material";
-import { useContext, useEffect } from "react";
-import { AdminContext } from "../../../context/AdmindataCtx/adminDataContext";
-
-import { APIResponseModel } from "../../../types/APIResponseModel";
-import { getAllUsers } from "../../../services/UserServices/userServices";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { UserModel } from "../../../models/UserModel";
-import { getBlogs } from "../../../services/BlogServices/blogServices";
-import { BlogModel } from "../../../models/BlogModel";
+
 import UserItem from "../../UserItem/UserItem";
 
 import AdminBlogItem from "../../AdminBlog/AdminBlog";
-
+import { adminActions, AdminSliceType, fetchAdminDataThunk } from "../../../store/AdminDataSlice/AdminDataSlice";
+import { AppDispatch } from "../../../store/store";
 
 const AdminDashboard = () => {
-    const adminCtx = useContext(AdminContext);
+    const adminCtx = useSelector((state: { AdminDataState: AdminSliceType }) => state.AdminDataState);
+    const dispatch = useDispatch<AppDispatch>();
 
-
+    console.log(adminCtx)
     const navigate = useNavigate();
 
 
@@ -36,27 +33,20 @@ const AdminDashboard = () => {
         localStorage.clear();
         navigate("/login");
     };
-    const fetchData = async () => {
-        adminCtx.setData({ loading: true, error: null });
-        const response1: APIResponseModel<UserModel[]> = await getAllUsers();
-        const response2: APIResponseModel<BlogModel[]> = await getBlogs(null);
-        if (response1.status === 401 || response1.status === 403 || response2.status === 401 || response2.status === 403) {
-            unAuthorizeHandle();
-            return;
-        }
 
-        if (response1.status !== 200 || response2.status !== 200) {
-            adminCtx.setData({ loading: false, error: "Failed to fetch data" });
-            return;
-        }
-        adminCtx.setData({ loading: false, error: null, data: [response1.data!, response2.data!] })
-        return;
-    }
 
 
     useEffect(() => {
-        fetchData();
+        dispatch(fetchAdminDataThunk());
     }, []);
+
+    useEffect(() => {
+        if (adminCtx.error === "UnAuthenticated") {
+            unAuthorizeHandle();
+            dispatch(adminActions.reset());
+        }
+    }, [adminCtx])
+    console.log(adminCtx.error)
 
     return <Grid container spacing={3} sx={{ p: 3, display: "flex" }}>
         {adminCtx.error && <Typography>{adminCtx.error}</Typography>}
@@ -78,7 +68,7 @@ const AdminDashboard = () => {
                         </TableHead>
                         <TableBody>
                             {adminCtx.data[0]?.map((user) => (
-                                <UserItem user={user} fetchData={fetchData} key={user.userid} />
+                                <UserItem user={user} key={user.userid} />
                             ))}
                         </TableBody>
                     </Table>
@@ -105,7 +95,7 @@ const AdminDashboard = () => {
                         </TableHead>
                         <TableBody>
                             {adminCtx.data[1]?.map((blog) => (
-                                <AdminBlogItem blog={blog} fetch={fetchData} key={blog.blogid} />
+                                <AdminBlogItem blog={blog} key={blog.blogid} />
                             ))}
                         </TableBody>
                     </Table>

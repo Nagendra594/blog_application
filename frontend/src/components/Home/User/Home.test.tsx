@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import UserDashboard from "./Home";
-import UserContext from "../../../context/UserDataCtx/userContext";
 import { BlogModel } from "../../../models/BlogModel";
 import useFetch from "../../../hooks/useFetch";
 import { Role } from "../../../types/Role.type";
 import { afterEach } from "node:test";
 import userEvent from '@testing-library/user-event';
+import { Provider } from "react-redux";
+import { MemoryRouter } from "react-router-dom";
+import { AdminSliceType } from "../../../store/AdminDataSlice/AdminDataSlice";
+import { configureStore } from "@reduxjs/toolkit";
+import { userReducer, UserSliceType } from "../../../store/UserSlice/UserSlice";
 
 
 vi.mock("../../../services/BlogServices/blogServices", () => ({
@@ -32,17 +36,17 @@ vi.mock("../../BlogItem/BlogItem", () => ({
 
 describe("UserDashboard Component", () => {
     const mockUseFetch = useFetch as Mock;
-
-    const mockUserContext = {
-        userid: "123",
-        username: "testuser",
-        email: "test@example.com",
-        role: "user" as Role,
-        loading: false,
-        error: null,
-        setUser: vi.fn(),
-        reset: vi.fn(),
+    const mockStore = (initialState: { userState: UserSliceType }) => {
+        return configureStore({
+            reducer: {
+                userState: userReducer
+            },
+            preloadedState: initialState
+        });
     };
+
+
+
 
     const mockBlogs: BlogModel[] = [
         {
@@ -90,24 +94,48 @@ describe("UserDashboard Component", () => {
     });
 
 
-    const setup = (userContext = mockUserContext) => {
-        return render(
-            <UserContext.Provider value={userContext}>
-                <UserDashboard />
-            </UserContext.Provider>
-        );
-    };
 
     it("renders without crashing", () => {
-        setup();
+        const store = mockStore({
+            userState: {
+                loading: false,
+                error: null,
+                userid: "123",
+                username: "dummy",
+                role: Role.user
+            }
+        });
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <UserDashboard />
+                </MemoryRouter>
+            </Provider>
+        );
         expect(screen.getByText("Profile Info")).toBeInTheDocument();
         expect(screen.getByText("Blogs")).toBeInTheDocument();
         expect(screen.getByText("Add New Blog")).toBeInTheDocument();
     });
 
     it("displays user profile information", () => {
-        setup();
-        expect(screen.getByText("testuser")).toBeInTheDocument();
+        const store = mockStore({
+            userState: {
+                loading: false,
+                error: null,
+                userid: "123",
+                username: "dummy",
+                email: "test@example.com",
+                role: Role.user
+            }
+        });
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <UserDashboard />
+                </MemoryRouter>
+            </Provider>
+        );
+        expect(screen.getByText("dummy")).toBeInTheDocument();
         expect(screen.getByText("test@example.com")).toBeInTheDocument();
     });
 
@@ -119,12 +147,44 @@ describe("UserDashboard Component", () => {
             fetchAgain: vi.fn(),
         });
 
-        setup();
+        const store = mockStore({
+            userState: {
+                loading: true,
+                error: null,
+                userid: "",
+                username: "",
+                email: "",
+                role: null
+            }
+        });
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <UserDashboard />
+                </MemoryRouter>
+            </Provider>
+        );
         expect(screen.getByRole("progressbar")).toBeInTheDocument();
     });
 
     it("displays all blogs by default", () => {
-        setup();
+        const store = mockStore({
+            userState: {
+                loading: false,
+                error: null,
+                userid: "123",
+                username: "dummy",
+                email: "test@example.com",
+                role: Role.user
+            }
+        });
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <UserDashboard />
+                </MemoryRouter>
+            </Provider>
+        );
         expect(screen.getByText("BlogItem: Test Blog 1")).toBeInTheDocument();
         expect(screen.getByText("BlogItem: Test Blog 2")).toBeInTheDocument();
     });
@@ -132,7 +192,23 @@ describe("UserDashboard Component", () => {
 
     it("filters to show only user's blogs", async () => {
         const user = userEvent.setup();
-        setup();
+        const store = mockStore({
+            userState: {
+                loading: false,
+                error: null,
+                userid: "123",
+                username: "dummy",
+                email: "test@example.com",
+                role: Role.user
+            }
+        });
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <UserDashboard />
+                </MemoryRouter>
+            </Provider>
+        );
         const selectButton = screen.getByText(/all blogs/i)
         await user.click(selectButton);
 
@@ -152,13 +228,45 @@ describe("UserDashboard Component", () => {
             fetchAgain: vi.fn(),
         });
 
-        setup();
+        const store = mockStore({
+            userState: {
+                loading: false,
+                error: null,
+                userid: "123",
+                username: "dummy",
+                email: "test@example.com",
+                role: Role.user
+            }
+        });
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <UserDashboard />
+                </MemoryRouter>
+            </Provider>
+        );
         expect(screen.getByText("No blogs found.")).toBeInTheDocument();
     });
 
     it("opens the add blog modal when button is clicked", async () => {
 
-        setup();
+        const store = mockStore({
+            userState: {
+                loading: false,
+                error: null,
+                userid: "123",
+                username: "dummy",
+                email: "test@example.com",
+                role: Role.user
+            }
+        });
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <UserDashboard />
+                </MemoryRouter>
+            </Provider>
+        );
 
         fireEvent.click(screen.getByText("Add New Blog"));
         expect(screen.getByText(/AddOrEditBlog Modal/i)).toBeInTheDocument();
@@ -172,7 +280,23 @@ describe("UserDashboard Component", () => {
             fetchAgain: vi.fn(),
         });
 
-        setup();
+        const store = mockStore({
+            userState: {
+                loading: false,
+                error: null,
+                userid: "123",
+                username: "dummy",
+                email: "test@example.com",
+                role: Role.user
+            }
+        });
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <UserDashboard />
+                </MemoryRouter>
+            </Provider>
+        );
         expect(screen.getByText("Failed to fetch blogs")).toBeInTheDocument();
     });
 });

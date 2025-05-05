@@ -8,15 +8,18 @@ import { APIResponseModel } from "../../types/APIResponseModel";
 import { deleteBlog } from "../../services/BlogServices/blogServices";
 import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../store/store";
+import { fetchAdminDataThunk } from "../../store/AdminDataSlice/AdminDataSlice";
 interface AdminBlogItemProps {
     blog: BlogModel;
-    fetch: Function
 }
 
-const AdminBlogItem: React.FC<AdminBlogItemProps> = ({ blog, fetch }) => {
+const AdminBlogItem: React.FC<AdminBlogItemProps> = ({ blog }) => {
     const [open, setOpen] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null)
+    const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
     const deleteHandler = async (id: string) => {
         setLoading(true);
@@ -33,7 +36,7 @@ const AdminBlogItem: React.FC<AdminBlogItemProps> = ({ blog, fetch }) => {
             setError("Failed to delete blog");
             return;
         }
-        fetch();
+        dispatch(fetchAdminDataThunk());
     };
     return (
 
@@ -43,7 +46,7 @@ const AdminBlogItem: React.FC<AdminBlogItemProps> = ({ blog, fetch }) => {
                 open={open}
                 handleClose={() => setOpen(false)}
                 blog={blog}
-                fetch={fetch}
+                fetch={() => dispatch(fetchAdminDataThunk())}
             />, document.getElementById("modal")!)}
             <TableCell>{blog.title}</TableCell>
             <TableCell>{blog.username}</TableCell>

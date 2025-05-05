@@ -80,14 +80,20 @@ export const updateUserBlog = async (req: ModReq, res: Response, next: NextFunct
       title,
       content,
     }
-    await updateBlog(updatedBlog);
-    res.status(200).json({ message: "update success" });
     if (req.file) {
       const image = "uploads/" + req.file.filename;
       updatedBlog.image = image;
+
+    }
+    await updateBlog(updatedBlog);
+    res.status(200).json({ message: "update success" });
+    if (req.file) {
+
       deleteFile(blog.image!);
+
     }
     return;
+
   } catch (err) {
     next(err);
   }
